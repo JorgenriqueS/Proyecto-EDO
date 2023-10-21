@@ -1,0 +1,10 @@
+lenguaje de programación: Python
+version: 3.12.0
+librerias utilizadas: 
+- sys
+- tkinter
+- tkk de tkinter
+- Image e ImageTk de PIL
+- matplotlib
+- symbols y sympify de sympy
+- odeint de scipy

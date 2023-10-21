@@ -13,7 +13,7 @@ from scipy.integrate import odeint
 pestaña1 = Tk()
 pestaña1.resizable(1,1)
 pestaña1.config(bg = "orange")
-pestaña1.iconbitmap(".\galileo.ico")
+pestaña1.iconbitmap(r".\galileo.ico")
 pestaña1.title("Proyecto - Aplicaciones de EDO")
 
 # Se crea dos subventanas para modificar la estética de la interfaz.
@@ -162,7 +162,7 @@ def grafica(eje_x, listaReal, rk1, rk2, rk4, s):
     gen.draw()
 
 # Se agrega una imagen en la interfaz gráfica, configurando su posición y tamaño.
-imagen = Image.open(".\logo2.png")  
+imagen = Image.open(r".\logo2.png")  
 imagen = imagen.resize((150, 50), Image.Resampling.LANCZOS)
 im = ImageTk.PhotoImage(imagen)
 imagen_label = Label(pestaña1, image = im).place(x = 1150, y = 3)
