@@ -2,7 +2,6 @@
 import sys
 from tkinter import *
 from tkinter import ttk
-from tabulate import tabulate
 from PIL import Image, ImageTk
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -13,7 +12,7 @@ from scipy.integrate import odeint
 # Se crea la ventana principal para la interfaz gráfica.
 pestaña1 = Tk()
 pestaña1.resizable(1,1)
-pestaña1.config(bg = "gray")
+pestaña1.config(bg = "orange")
 pestaña1.iconbitmap(".\galileo.ico")
 pestaña1.title("Proyecto - Aplicaciones de EDO")
 
@@ -29,17 +28,17 @@ pestaña3.pack(fill = "y", side = "right")
 pestaña3.config(width = "300", height = "650")
 
 # Se crea textos para la interfaz gráfica, configurando color, letra, posición y el string.
-txt_aut = Label(pestaña1, bg = "Gray", text = "Interfaz Gráfica implementada por: Diego Lezzer y Jorge Soto", font = ("Calibri bold", 16)).place(x = 250, y = 630)
-txt_tit = Label(pestaña1, bg = "black", fg ="white", text = "Método de Runge-kutta", font = ("Calibri bold", 16)).place(x = 50, y = 10)
+txt_aut = Label(pestaña1, bg = "orange", text = "Interfaz Gráfica implementada por: Diego Lezzer y Jorge Soto", font = ("Calibri bold", 16)).place(x = 250, y = 630)
+txt_tit = Label(pestaña1, bg = "black", fg ="white", text = "Método de Runge-Kutta", font = ("Calibri bold", 16)).place(x = 50, y = 10)
 txt_IVI = Label(pestaña1, text = "Ingresar Valores Iniciales:", font = ("Calibri bold", 16)).place(x = 1115, y = 70)
 txt_IVV = Label(pestaña1, text = "Ingresar Valores Variables:", font = ("Calibri bold", 16)).place(x = 1110, y = 210)
 txt_opc = Label(pestaña1, text = "Seleccionar Aproximación:", font = ("Calibri bold", 16)).place(x = 1110, y = 350)
-txt_fun = Label(pestaña1, bg = "Gray", text = "Ingresar Ecuación:", font = ("Calibri bold", 16)).place(x = 50, y = 80)
+txt_fun = Label(pestaña1, bg = "orange", text = "Ingresar Ecuación:", font = ("Calibri bold", 16)).place(x = 50, y = 80)
 txt_x0 = Label(pestaña1, text = "X_0 =", font = ("Calibri bold", 16)).place(x = 1135, y = 120)
 txt_y0 = Label(pestaña1, text = "Y_0 =", font = ("Calibri bold", 16)).place(x = 1135, y = 160)
 txt_xn = Label(pestaña1, text = "X =", font = ("Calibri bold", 16)).place(x = 1145, y = 260)
 txt_hn = Label(pestaña1, text = "H =", font = ("Calibri bold", 16)).place(x = 1145, y = 300)
-txt_yp = Label(pestaña1, bg = "Gray", text = "Y'=", font = ("Calibri bold", 16)).place(x = 50, y = 120)
+txt_yp = Label(pestaña1, bg = "orange", text = "Y'=", font = ("Calibri bold", 16)).place(x = 50, y = 120)
 
 # Se crea espacios en blanco para ingresar datos.
 entry_x0 = Entry(pestaña1)
@@ -68,15 +67,25 @@ def calcular():
     hn = float(entry_hn.get())
     fu = entry_fu.get()
 
-    #llamando a todos los Runge-Kutta, me devuelven listas
+    #llamando a todos los Runge-Kutta, asi como la solucion de la EDO y el calculo de error: me devuelven listas
     rk1 = RK1(fu, x0, y0, hn, xn)
     rk2 = RK2(fu, x0, y0, hn, xn)
     rk4 = RK4(fu, x0, y0, hn, xn)
     x = xOutput(x0, xn, hn)
     solucion = EDO(fu, y0, x)
 
+    results = []
+    for item in solucion: 
+        results.append(item[0])
+    
+    errores = error(results, rk1, rk2, rk4, select.get())
+
     #mandando a graficar
     grafica(x, solucion, rk1, rk2, rk4, select.get())
+
+    #llenando tabla
+    llenarTabla(tab, x, rk1, rk2, rk4, results, errores)
+
 
 bot_calcular = Button(pestaña1, text = "CALCULAR", command = calcular, bg = "white")
 bot_calcular.place(x = 1145, y = 520)
@@ -90,30 +99,49 @@ bot_cancelar.place(x = 1145, y = 600)
 bot_cancelar.config(width = 22, height = 3)
 
 # Se crea la tabla indicando la cantidad de columnas posibles y sus etiquetas.
-tab = ttk.Treeview(pestaña1, columns = ("colum1", "colum2", "colum3", "colum4", "colum5"))
+tab = ttk.Treeview(pestaña1, columns = ("colum1", "colum2", "colum3", "colum4", "colum5", "colum6"), height = 19)
     
 # Se crea las columnas de la tabla configurando el ancho y centrando los datos.
-tab.column("#0", width = 70)
-tab.column("colum1", width = 70, anchor = CENTER)
-tab.column("colum2", width = 70, anchor = CENTER)
-tab.column("colum3", width = 70, anchor = CENTER)
-tab.column("colum4", width = 70, anchor = CENTER)
-tab.column("colum5", width = 70, anchor = CENTER)
+tab.column("#0", width = 1)
+tab.column("#1", width = 70, anchor = CENTER)
+tab.column("#2", width = 70, anchor = CENTER)
+tab.column("#3", width = 70, anchor = CENTER)
+tab.column("#4", width = 70, anchor = CENTER)
+tab.column("#5", width = 70, anchor = CENTER)
+tab.column("#6", width = 90, anchor = CENTER)
     
 # Se crea textos especificando el nombre de cada columna centrándolo. 
-tab.heading("#0", text = "X_n", anchor = CENTER)
-tab.heading("colum1", text = "RK_1", anchor = CENTER)
-tab.heading("colum2", text = "RK_2", anchor = CENTER)
-tab.heading("colum3", text = "RK_4", anchor = CENTER)
-tab.heading("colum4", text = "Var Real", anchor = CENTER)
-tab.heading("colum5", text = "Error", anchor = CENTER)
-    
+tab.heading("#0", text = "", anchor = CENTER)
+tab.heading("#1", text = "X_n", anchor = CENTER)
+tab.heading("#2", text = "RK_1", anchor = CENTER)
+tab.heading("#3", text = "RK_2", anchor = CENTER)
+tab.heading("#4", text = "RK_4", anchor = CENTER)
+tab.heading("#5", text = "Var Real", anchor = CENTER)
+tab.heading("#6", text = "Error abs.", anchor = CENTER)
+  
 # Se configura la tabla fijándola en una posición en específico.
 tab.pack(side = LEFT)
 tab.place(x = 50, y = 200)
 
+#funcion que servira para llenar la tabla con la informacion de todos los arreglos
+def llenarTabla(tree, lX, lRk1, lRk2, lRK4, real, lErr):
+
+    #limpiando la tabla antes
+    items = tree.get_children()
+    for item in items:
+        tree.delete(item)
+
+    data = []
+    #creo una lista de listas, cada item son los elementos de una fila de la tabla
+    for i in range(0, len(lX)):
+        data.append([lX[i], lRk1[i], lRk2[i], lRK4[i], real[i], lErr[i]])
+    
+    #llenando tabla
+    for item in data:
+        tree.insert("", "end", values=(item[0], item[1], item[2], item[3], item[4], item[5]))
+    
 # Se crea un apartado el cual realizará gráficas, configurando su tamaño y posición.
-graf = Figure(figsize =(5, 4), dpi = 100)
+graf = Figure(figsize =(5, 4), dpi = 101)
 fig = graf.add_subplot(111)
 gen = FigureCanvasTkAgg(graf, master = pestaña1)
 gen1 = gen.get_tk_widget()
@@ -125,8 +153,8 @@ def grafica(eje_x, listaReal, rk1, rk2, rk4, s):
     fig.clear()
     list = [rk1, rk2, rk4]
     p = ["1", "2", "4"]
-    fig.plot(eje_x, listaReal, label='Real', color='blue', marker="o")
-    fig.plot(eje_x, list[s], label='Aproximado', color='red',marker="o")
+    fig.plot(eje_x, listaReal, label='Real', color='indigo', marker="o")
+    fig.plot(eje_x, list[s], label='Aproximado', color='firebrick',marker="o")
     fig.set_title('Solución exacta de la EDO vs Runge-Kutta orden ' + p[s])
     fig.set_xlabel('X')
     fig.set_ylabel('Y')
@@ -198,5 +226,17 @@ def EDO(string, y0, xArray):
     # Funcion de la libreria que resuelve la EDO
     solucion = odeint(ecuacion_diferencial, y0, xArray)
     return solucion
+
+#funcion que permite hallar el error de las iteraciones
+def error(teor, rk1, rk2, rk4, s):
+    list = [rk1, rk2, rk4]
+    out = []
+    exp = list[s]
+    for i in range(0, len(teor)):
+        err = abs((teor[i]-exp[i])/teor[i])
+        out.append(err)
+    return out
+
+
 
 pestaña1.mainloop()
