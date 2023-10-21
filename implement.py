@@ -1,6 +1,38 @@
 from sympy import symbols, sympify
 from tabulate import tabulate
 import matplotlib.pyplot as plt
+from scipy.integrate import odeint
+import numpy as np
+
+def EDO(string, y0, xArray):
+    # Convertir el string en una función
+    def ecuacion_diferencial(y, x):
+        return eval(string)
+        
+    # Funcion de la libreria que resuelve la EDO
+    solucion = odeint(ecuacion_diferencial, y0, xArray)
+    return solucion
+
+def graficar(eje_x, real, rk1, rk2, rk4, i):
+    if (i == 1): 
+        k = 0
+    if (i == 2): 
+        k = 1
+    if (i == 4): 
+        k = 2
+
+    # Graficar la solución
+    l = [rk1, rk2, rk4]
+    p = ["1", "2", "4"]
+    plt.figure(figsize=(8, 6))
+    plt.plot(eje_x, real, label='solucion exacta', color='blue', marker="o")
+    plt.plot(eje_x, l[k], label='solucion aproximada', color='red', marker="o")
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.legend()
+    plt.title('Solución exacta de la EDO vs Runge-Kutta orden '+p[k])
+    plt.grid(True)
+    plt.show()
 
 def Function(string, x_valor, y_valor):
     x, y = symbols('x y') # Definir los símbolos que se utilizarán en la expresión
@@ -70,11 +102,13 @@ def main():
     rk2 = RK2(expr, x_0, y_0, h, x_f)
     rk4 = RK4(expr, x_0, y_0, h, x_f)
     x = xOutput(x_0, x_f, h)
+    exact = EDO(expr, y_0, x)
 
     print("Resultados del algoritmo para y'="+expr)
     print("----------------------------------------------------------------------------------")
     print(tabulate({"X_k": x, "RK1": rk1, "RK2": rk2, "RK4": rk4}, headers="keys", tablefmt="grid", colalign=["center", "center", "center", "center"]))
-  
+    graficar(x, exact, rk1, rk2, rk4, t)
+
 main()
 
 
